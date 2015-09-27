@@ -25,6 +25,12 @@ cards_in_progress = []
 [cards_in_progress.append(card) for card in cards if card.get_list().name == "In Progress"]
 
 print 'There are %s cards in progress' % len(cards_in_progress)
+
+#create a dict, key = member name and list for values
+msg_dict = {}
+for key in team.iterkeys():
+    msg_dict[key] = []
+
 for card in cards_in_progress:
     id = card.id
     hex_date = (int(id[0:8],16))
@@ -43,9 +49,18 @@ for card in cards_in_progress:
        member_list_str = (", ".join(member_list))
     else:
         member_list_str = members[0].name
+    #convert member_list_str back into a list
+    member_list = member_list_str.split(",")
+
+
     if delta.months > 0:
         msg = '%s is marked in progress but is %s months old. Owner(s) are %s ' % (card.name, delta.months, member_list_str)
-        print(msg)
+        for member in member_list:
+            msg_dict[str(member).strip()].append(msg)
+    if delta.months == 0 and delta.days > 7:
+        msg = '%s is marked in progress but is %s days old. Owner(s) are %s ' % (card.name, delta.days, member_list_str)
+        for member in member_list:
+            msg_dict[str(member).strip()].append(msg)
 
-for key, value in team.iteritems():
-    print key, value
+for key, value in msg_dict.iteritems():
+    print(key, value)
