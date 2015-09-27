@@ -52,13 +52,12 @@ for card in cards_in_progress:
     #convert member_list_str back into a list
     member_list = member_list_str.split(",")
 
-
     if delta.months > 0:
-        msg = '%s is marked in progress but is %s months old. Owner(s) are %s ' % (card.name, delta.months, member_list_str)
+        msg = 'card url %s : %s is marked in progress but is %s months old. Owner(s) are %s ' % (card.get_card_information()['url'], card.name, delta.months, member_list_str)
         for member in member_list:
             msg_dict[str(member).strip()].append(msg)
     if delta.months == 0 and delta.days > 7:
-        msg = '%s is marked in progress but is %s days old. Owner(s) are %s ' % (card.name, delta.days, member_list_str)
+        msg = 'card url %s : %s is marked in progress but is %s days old. Owner(s) are %s ' % (card.get_card_information()['url'], card.name, delta.days, member_list_str)
         for member in member_list:
             msg_dict[str(member).strip()].append(msg)
 
