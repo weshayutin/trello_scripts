@@ -1,4 +1,6 @@
 #!/usr/bin/python
+
+import ast
 import dateutil.parser
 from datetime import datetime
 from dateutil.relativedelta import *
@@ -6,6 +8,9 @@ import os
 import trolly
 
 import pdb
+
+#get team members
+team = ast.literal_eval(os.environ['TEAM'])
 
 #Trello API_KEY, trello TOKEN
 client = trolly.client.Client(os.environ['API_KEY'], os.environ['TOKEN'])
@@ -33,10 +38,14 @@ for card in cards_in_progress:
        member_list = []
        for member in members:
            #pdb.set_trace()
-           member_list.append(member.name)
+           if team.has_key(member.name):
+               member_list.append(member.name)
+       member_list_str = (", ".join(member_list))
     else:
-        member_list = members[0].name
+        member_list_str = members[0].name
     if delta.months > 0:
-        print '%s is marked in progress but is %s months old. Owner(s) are %s ' % (card.name, delta.months, str(member_list))
+        msg = '%s is marked in progress but is %s months old. Owner(s) are %s ' % (card.name, delta.months, member_list_str)
+        print(msg)
 
-
+for key, value in team.iteritems():
+    print key, value
