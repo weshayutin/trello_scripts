@@ -12,6 +12,11 @@ import trolly
 
 import pdb
 
+#Global variables
+now = datetime.utcnow()
+msg_dict = {}
+cards_in_progress = []
+
 #get team members
 team = ast.literal_eval(os.environ['TEAM'])
 email_server = smtplib.SMTP('smtp.corp.redhat.com', 25)
@@ -30,7 +35,7 @@ def email_send(email_from, email_to, subject, body):
     text = email.as_string()
     email_server.sendmail(email_from, email_to, text)
 
-def generate_report():
+def generate_report_body():
     for card in cards_in_progress:
         id = card.id
         #Determine the creation date of the card
@@ -59,19 +64,20 @@ def generate_report():
             for member in member_list:
                 msg_dict[str(member).strip()].append(msg)
 
+def generate_report():
+    # get card list
+    cards = openstack_ci.get_cards()
+    [cards_in_progress.append(card) for card in cards if card.get_list().name == "In Progress"]
 
-#get the current time
-now = datetime.utcnow()
+    #create a dict, key = member name and list for values
+    for key in team.iterkeys():
+        msg_dict[key] = []
 
-# get card list
-cards = openstack_ci.get_cards()
-cards_in_progress = []
-[cards_in_progress.append(card) for card in cards if card.get_list().name == "In Progress"]
+    #Generate Report
+    generate_report_body()
 
-#create a dict, key = member name and list for values
-msg_dict = {}
-for key in team.iterkeys():
-    msg_dict[key] = []
+
+#MAIN
 
 #Generate Report
 generate_report()
