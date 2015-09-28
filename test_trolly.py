@@ -55,11 +55,11 @@ for card in cards_in_progress:
     member_list = member_list_str.split(",")
 
     if delta.months > 0:
-        msg = 'card url %s : %s is marked in progress but is %s months old. Owner(s) are %s ' % (card.get_card_information()['url'], card.name, delta.months, member_list_str)
+        msg = 'CARD URL: %s\n %s\n Card is marked in progress but is %s months old.\n Owner(s) are %s ' % (card.get_card_information()['url'], card.name, delta.months, member_list_str)
         for member in member_list:
             msg_dict[str(member).strip()].append(msg)
     if delta.months == 0 and delta.days > 7:
-        msg = 'card url %s : %s is marked in progress but is %s days old. Owner(s) are %s ' % (card.get_card_information()['url'], card.name, delta.days, member_list_str)
+        msg = 'CARD URL: %s\n %s\n Card is marked in progress but is %s days old.\n Owner(s) are %s ' % (card.get_card_information()['url'], card.name, delta.days, member_list_str)
         for member in member_list:
             msg_dict[str(member).strip()].append(msg)
 
@@ -69,6 +69,7 @@ email_server.starttls()
 for name, msg in msg_dict.iteritems():
     if name in email_list:
       print(name, msg)
+      msg = '\n\n'.join(msg)
       email_server.sendmail('whayutin@redhat.com', email_list[name], str(msg))
 email_server.quit()
 
