@@ -4,6 +4,8 @@ import ast
 import dateutil.parser
 from datetime import datetime
 from dateutil.relativedelta import *
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
 import os
 import smtplib
 import trolly
@@ -35,17 +37,15 @@ for key in team.iterkeys():
 
 for card in cards_in_progress:
     id = card.id
+    #Determine the creation date of the card
     hex_date = (int(id[0:8],16))
     created_on_human = unicode(datetime.fromtimestamp(hex_date))
-    #created_on = datetime.strptime(created_on_human, '%Y-%m-%d %H:%M:%S')
     created_on = dateutil.parser.parse(created_on_human)
     delta = relativedelta(now, created_on)
-    #pdb.set_trace()
     members = card.get_members()
     if len(members) > 1:
        member_list = []
        for member in members:
-           #pdb.set_trace()
            if team.has_key(member.name):
                member_list.append(member.name)
        member_list_str = (", ".join(member_list))
@@ -69,17 +69,36 @@ email_server.starttls()
 #email each owner w/ a list of cards that require attention
 for name, msg in msg_dict.iteritems():
     if name in email_list:
-      #print(name, msg)
-      msg = '\n\n'.join(msg)
-      email_server.sendmail('whayutin@redhat.com', email_list[name], str(msg))
+      email_from = "whayutin@redhat.com"
+      email_to = email_list[name]
+      email = MIMEMultipart()
+      email['From'] = email_from
+      email['To'] = email_to
+      email['Subject'] = "[trello report] Trello cards need attention"
+      body = '\n\n'.join(msg)
+      email.attach(MIMEText(body,'plain'))
+      text = email.as_string()
+      email_server.sendmail(email_from, email_to, text)
 
 #email report
 all_msg = ""
 for name, msg in msg_dict.iteritems():
       #print(name, msg)
+      all_msg += 'There are %s cards in progress' % len(cards_in_progress)
       all_msg += '\n\n'
       all_msg += '\n'.join(msg)
-email_server.sendmail('whayutin@redhat.com', 'whayutin@redhat.com', str(all_msg))
+
+email_from = "whayutin@redhat.com"
+email_to = "whayutin@redhat.com"
+email = MIMEMultipart()
+email['From'] = email_from
+email['To'] = email_to
+email['Subject'] = "[trello rollup report] Trello cards need attention"
+#body = '\n\n'.join(all_msg)
+body = all_msg
+email.attach(MIMEText(body,'plain'))
+text = email.as_string()
+email_server.sendmail(email_from, email_to, text)
 
 email_server.quit()
 
