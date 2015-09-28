@@ -1,0 +1,4 @@
+#Trello Credentials
+export API_KEY=""
+export TOKEN=""
+

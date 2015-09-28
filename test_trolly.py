@@ -5,12 +5,14 @@ import dateutil.parser
 from datetime import datetime
 from dateutil.relativedelta import *
 import os
+import smtplib
 import trolly
 
 import pdb
 
 #get team members
 team = ast.literal_eval(os.environ['TEAM'])
+email_server = smtplib.SMTP('smtp.corp.redhat.com', 25)
 
 #Trello API_KEY, trello TOKEN
 client = trolly.client.Client(os.environ['API_KEY'], os.environ['TOKEN'])
@@ -61,5 +63,12 @@ for card in cards_in_progress:
         for member in member_list:
             msg_dict[str(member).strip()].append(msg)
 
-for key, value in msg_dict.iteritems():
-    print(key, value)
+email_list = ast.literal_eval(os.environ['TEAM_TO_EMAIL'])
+email_server.starttls()
+
+for name, msg in msg_dict.iteritems():
+    if name in email_list:
+      print(name, msg)
+      email_server.sendmail('whayutin@redhat.com', email_list[name], str(msg))
+email_server.quit()
+

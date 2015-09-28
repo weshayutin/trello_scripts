@@ -1,0 +1,4 @@
+#TEAM = json dict of team members to search for
+export TEAM="{'foo bar':'foo@bar.com','foo baz':'foo@baz.com'}"
+#TEAM_TO_EMAIL used for debugging a smaller set of team members
+export TEAM_TO_EMAIL="{'foo bar':'foo@bar.com'}"
