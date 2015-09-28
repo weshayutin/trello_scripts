@@ -89,7 +89,7 @@ email_server.starttls()
 #email each owner w/ a list of cards that require attention
 for name, msg in msg_dict.iteritems():
     if name in email_list:
-      email_send("whayutin@redhat.com", email_list[name], "[trello report] Trello cards that need attention", '\n\n'.join(msg))
+      email_send(os.environ['REPORT_OWNER'], email_list[name], "[trello report] Trello cards that need attention", '\n\n'.join(msg))
 
 #email report
 all_msg = ""
@@ -99,7 +99,7 @@ for name, msg in msg_dict.iteritems():
       all_msg += '\n\n'
       all_msg += '\n'.join(msg)
 
-email_send("whayutin@redhat.com", "whayutin@redhat.com", "[trello rollup report] Trello cards that need attention", all_msg)
+email_send(os.environ['REPORT_OWNER'], os.environ['REPORT_LIST'], "[trello rollup report] Trello cards that need attention", all_msg)
 
 
 #shutdown the connection to smtp/email

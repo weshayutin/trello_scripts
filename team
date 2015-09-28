@@ -1,4 +1,12 @@
 #TEAM = json dict of team members to search for
 export TEAM="{'foo bar':'foo@bar.com','foo baz':'foo@baz.com'}"
-#TEAM_TO_EMAIL used for debugging a smaller set of team members
+
+#TEAM_TO_EMAIL, list of team members that should be emailed. This is useful for testing and not spamming everyone
 export TEAM_TO_EMAIL="{'foo bar':'foo@bar.com'}"
+
+#Report owner, basically the email FROM: variable
+export REPORT_OWNER="owner@foo.com"
+
+#Report email list, a list of emails you would like the roll up report sent to
+export REPORT_LIST="owner@foo.com, other_guy@foo.com"
+
