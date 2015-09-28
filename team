@@ -10,3 +10,9 @@ export REPORT_OWNER="owner@foo.com"
 #Report email list, a list of emails you would like the roll up report sent to
 export REPORT_LIST="owner@foo.com, other_guy@foo.com"
 
+#Intro message included in emails to team members
+export TEAM_INTRO_MSG="
+Greetings,
+Trello cards older than one week should be broken down into smaller cards that
+can be completed in one week.
+The following cards have been flagged."
