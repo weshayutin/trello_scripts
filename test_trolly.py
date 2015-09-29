@@ -6,13 +6,15 @@ from datetime import datetime
 from dateutil.relativedelta import *
 from email.mime.text import MIMEText
 import os
+import pprint
+import pytz
 import smtplib
 import trolly
 
 import pdb
 
 #Global variables
-now = datetime.utcnow()
+now = datetime.now(pytz.utc)
 msg_dict = {}
 cards_in_progress = []
 
@@ -38,34 +40,64 @@ def email_send(email_from, email_to, subject, body):
 
 def generate_report_body():
     for card in cards_in_progress:
-        id = card.id
-        #Determine the creation date of the card
-        hex_date = (int(id[0:8],16))
-        created_on_human = str(datetime.fromtimestamp(hex_date))
-        created_on = dateutil.parser.parse(created_on_human)
+      id = card.id
+      #Determine the creation date of the card
+      hex_date = (int(id[0:8],16))
+      created_on_human = str(datetime.fromtimestamp(hex_date))
+      created_on = dateutil.parser.parse(created_on_human).replace(tzinfo = pytz.utc)
+      card_age = relativedelta(now, created_on)
 
-        delta = relativedelta(now, created_on)
-        #pdb.set_trace()
+      #set a due date (1 week), if none set
+      if card.get_card_information()['due']:
+        print("due date already set")
+      else:
+        in_one_week = now+relativedelta(weeks=+1)
+        in_one_week = in_one_week.strftime('%Y-%m-%dT%H:%M:%S')
+        card.update_card({'due':in_one_week})
+      due = dateutil.parser.parse(card.get_card_information()['due'])
+      delta = relativedelta(now, due)
 
-        members = card.get_members()
-        if len(members) > 0:
-          member_list = []
-          for member in members:
-            if member.name in team:
-              member_list.append(member.name)
-        else:
-          break # no members found
-        #convert member_list_str back into a list
-        member_list_str = (", ".join(member_list))
+      #only generate date on team members
+      members = card.get_members()
+      if len(members) > 0:
+        member_list = []
+        for member in members:
+          if member.name in team:
+            member_list.append(member.name)
+      else:
+        break # no members found
+      #convert member_list_str back into a list
+      member_list_str = (", ".join(member_list))
 
-        if delta.months > 0:
-            msg = 'CARD URL: %s\nNAME: %s\n Card is marked in progress but is %s months old.\n Owner(s) are %s\n ' % (card.get_card_information()['shortUrl'], card.name, delta.months, member_list_str)
-            for member in member_list:
-                msg_dict[str(member).strip()].append(msg)
-        if delta.months == 0 and delta.days > 7:
-            msg = 'CARD URL: %s\nNAME: %s\n Card is marked in progress but is %s days old.\n Owner(s) are %s\n ' % (card.get_card_information()['shortUrl'], card.name, delta.days, member_list_str)
-            for member in member_list:
-                msg_dict[str(member).strip()].append(msg)
+      # If card is past it's due date
+      if delta.days > 0:
+        msg = 'CARD URL: %s\nNAME: %s\n \
+              Card is overdue by %s months %s days.\n \
+              Card is %s months %s days old.\n \
+              Owner(s) are %s\n ' \
+              % (card.get_card_information()['shortUrl'],\
+                 card.name,\
+                 delta.months,\
+                 delta.days,\
+                 card_age.months,\
+                 card_age.days,\
+                 member_list_str)
+        for member in member_list:
+          msg_dict[str(member).strip()].append(msg)
+
+      # If user has set the due date greater than 1 week
+      if delta.days < -7 or delta.months < 0:
+        msg = 'CARD URL: %s\nNAME: %s\n \
+              Card due date is greater than 7 days\n \
+              Card is %s months %s days old.\n \
+              Owner(s) are %s\n ' \
+              % (card.get_card_information()['shortUrl'],\
+                 card.name,\
+                 card_age.months,\
+                 card_age.days,\
+                 member_list_str)
+        for member in member_list:
+          msg_dict[str(member).strip()].append(msg)
 
 def generate_stats(column):
   stats = {}
@@ -89,16 +121,16 @@ def nothing_in_progress():
   return nada
 
 def generate_report():
-    # get card list
-    this_list = get_list('In Progress')
-    [cards_in_progress.append(card) for card in this_list.get_cards()]
+  # get card list
+  this_list = get_list('In Progress')
+  [cards_in_progress.append(card) for card in this_list.get_cards()]
 
-    #create a dict, key = member name and list for values
-    for key in team.keys():
-        msg_dict[key] = []
+  #create a dict, key = member name and list for values
+  for key in team.keys():
+    msg_dict[key] = []
 
-    #Generate Report
-    generate_report_body()
+  #Generate Report
+  generate_report_body()
 
 #MAIN
 
@@ -112,31 +144,31 @@ email_server.starttls()
 #email each owner w/ a list of cards that require attention
 
 for name, msg in msg_dict.items():
-    if name in email_list:
-      intro_msg = os.environ['TEAM_INTRO_MSG']
-      msg = intro_msg + '\n\n' + '\n\n'.join(msg)
-      email_send(os.environ['REPORT_OWNER'], email_list[name], "[trello report] Trello cards that need attention", msg)
+  if name in email_list:
+    intro_msg = os.environ['TEAM_INTRO_MSG']
+    msg = intro_msg + '\n\n' + '\n\n'.join(msg)
+    email_send(os.environ['REPORT_OWNER'], email_list[name], "[trello report] Trello cards that need attention", msg)
 
 #email report
 all_msg = ""
-all_msg += 'There are %s cards in progress\n' % len(cards_in_progress)
-all_msg += 'cards in complete: %s\n' % generate_stats("Complete")
-all_msg += 'cards in next: %s\n' % generate_stats("Next")
-all_msg += 'cards in progress: %s\n\n' % generate_stats("In Progress")
+all_msg += 'There are %s cards in progress\n\n' % len(cards_in_progress)
+all_msg += 'cards in complete:\n %s\n\n' % generate_stats("Complete")
+all_msg += 'cards in next:\n %s\n\n' % generate_stats("Next")
+all_msg += 'cards in progress:\n %s\n\n' % generate_stats("In Progress")
 
 for name, msg in msg_dict.items():
-      all_msg += 'Detailed list of cards in progress:\n'
-      all_msg += '\n'
-      all_msg += '\n'.join(msg)
+  if msg:
+    all_msg += '\n'
+    all_msg += '\n'.join(msg)
 
 email_send(os.environ['REPORT_OWNER'], os.environ['REPORT_LIST'], "[trello rollup report] Trello cards that need attention", all_msg)
 
 #email team members w/ nothing in progress
 nada = nothing_in_progress()
 for name in nada:
-  #print name
-  all_msg = '%s, you are not a member of any cards marked in progress in trello.  Please pick up a card and begin work' % name
-  email_send(os.environ['REPORT_OWNER'], team[name], "[trello report] no cards found in progress", all_msg)
+  if name in email_list:
+    all_msg = '%s, you are not a member of any cards marked in progress in trello.  Please pick up a card and begin work' % name
+    email_send(os.environ['REPORT_OWNER'], team[name], "[trello report] no cards found in progress", all_msg)
 
 #shutdown the connection to smtp/email
 email_server.quit()

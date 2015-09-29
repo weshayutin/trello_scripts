@@ -20,7 +20,7 @@ Install:
 git clone https://github.com/plish/Trolly
 git clone https://github.com/weshayutin/trello_scripts.git
 
-yum install python3-httplib2 python3-dateutil
+yum install python3-httplib2 python3-dateutil python3-pytz.noarch
 
 cd Trolly
 python3 setup.py install
