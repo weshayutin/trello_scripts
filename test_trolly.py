@@ -50,16 +50,15 @@ def generate_report_body():
         delta = relativedelta(now, created_on)
 
         members = card.get_members()
-        if len(members) > 1:
-           member_list = []
-           for member in members:
-               if team.has_key(member.name):
-                   member_list.append(member.name)
-           member_list_str = (", ".join(member_list))
+        if len(members) > 0:
+          member_list = []
+          for member in members:
+            if team.has_key(member.name):
+              member_list.append(member.name)
         else:
-            member_list_str = members[0].name
+          break # no members found
         #convert member_list_str back into a list
-        member_list = member_list_str.split(",")
+        member_list_str = (", ".join(member_list))
 
         if delta.months > 0:
             msg = 'CARD URL: %s\nNAME: %s\n Card is marked in progress but is %s months old.\n Owner(s) are %s\n ' % (card.get_card_information()['url'], card.name, delta.months, member_list_str)
@@ -83,6 +82,13 @@ def generate_stats(column):
       if team.has_key(member.name): stats[member.name] += 1
   return stats
 
+def nothing_in_progress():
+  nada = []
+  in_progress = generate_stats("In Progress")
+  for key, value in in_progress.iteritems():
+    if value == 0:
+      nada.append(key)
+  return nada
 
 def generate_report():
     # get card list
@@ -125,6 +131,13 @@ for name, msg in msg_dict.iteritems():
       all_msg += '\n'.join(msg)
 
 email_send(os.environ['REPORT_OWNER'], os.environ['REPORT_LIST'], "[trello rollup report] Trello cards that need attention", all_msg)
+
+#email team members w/ nothing in progress
+nada = nothing_in_progress()
+for name in nada:
+  print name
+  all_msg = '%s, you are not a member of any cards marked in progress in trello.  Please pick up a card and begin work' % name
+  email_send(os.environ['REPORT_OWNER'], team[name], "[trello report] no cards found in progress", all_msg)
 
 #shutdown the connection to smtp/email
 email_server.quit()

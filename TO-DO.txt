@@ -1,0 +1,4 @@
+TO-DO
+
+1. send email to team members w/ 0 card in_progress
+2. flag cards w/ no members
