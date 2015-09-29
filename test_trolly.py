@@ -144,7 +144,7 @@ email_server.starttls()
 #email each owner w/ a list of cards that require attention
 
 for name, msg in msg_dict.items():
-  if name in email_list:
+  if name in email_list and msg:
     intro_msg = os.environ['TEAM_INTRO_MSG']
     msg = intro_msg + '\n\n' + '\n\n'.join(msg)
     email_send(os.environ['REPORT_OWNER'], email_list[name], "[trello report] Trello cards that need attention", msg)
