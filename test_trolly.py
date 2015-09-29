@@ -25,6 +25,11 @@ email_server = smtplib.SMTP('smtp.corp.redhat.com', 25)
 client = trolly.client.Client(os.environ['API_KEY'], os.environ['TOKEN'])
 openstack_ci = [board for board in client.get_boards() if board.name == "openstack-ci"][0]
 
+def get_list(list_name):
+    for this_list in openstack_ci.get_lists():
+      if this_list.name == list_name:
+        return this_list
+
 def email_send(email_from, email_to, subject, body):
     email = MIMEMultipart()
     email['From'] = email_from
@@ -43,6 +48,7 @@ def generate_report_body():
         created_on_human = unicode(datetime.fromtimestamp(hex_date))
         created_on = dateutil.parser.parse(created_on_human)
         delta = relativedelta(now, created_on)
+
         members = card.get_members()
         if len(members) > 1:
            member_list = []
@@ -64,10 +70,24 @@ def generate_report_body():
             for member in member_list:
                 msg_dict[str(member).strip()].append(msg)
 
+def generate_stats(column):
+  stats = {}
+  for member in team.keys():
+    stats[member] = 0
+  column_list = []
+  this_list = get_list(column)
+  [column_list.append(card) for card in this_list.get_cards()]
+  for card in column_list:
+    members = card.get_members()
+    for member in members:
+      if team.has_key(member.name): stats[member.name] += 1
+  return stats
+
+
 def generate_report():
     # get card list
-    cards = openstack_ci.get_cards()
-    [cards_in_progress.append(card) for card in cards if card.get_list().name == "In Progress"]
+    this_list = get_list('In Progress')
+    [cards_in_progress.append(card) for card in this_list.get_cards()]
 
     #create a dict, key = member name and list for values
     for key in team.iterkeys():
@@ -75,7 +95,6 @@ def generate_report():
 
     #Generate Report
     generate_report_body()
-
 
 #MAIN
 
@@ -95,14 +114,17 @@ for name, msg in msg_dict.iteritems():
 
 #email report
 all_msg = ""
+all_msg += 'There are %s cards in progress\n' % len(cards_in_progress)
+all_msg += 'cards in complete: %s\n' % generate_stats("Complete")
+all_msg += 'cards in next: %s\n' % generate_stats("Next")
+all_msg += 'cards in progress: %s\n\n' % generate_stats("In Progress")
+
 for name, msg in msg_dict.iteritems():
-      #print(name, msg)
-      all_msg += 'There are %s cards in progress' % len(cards_in_progress)
-      all_msg += '\n\n'
+      all_msg += 'Detailed list of cards in progress:\n'
+      all_msg += '\n'
       all_msg += '\n'.join(msg)
 
 email_send(os.environ['REPORT_OWNER'], os.environ['REPORT_LIST'], "[trello rollup report] Trello cards that need attention", all_msg)
-
 
 #shutdown the connection to smtp/email
 email_server.quit()
