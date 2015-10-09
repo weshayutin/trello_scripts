@@ -150,7 +150,9 @@ for name, msg in msg_dict.items():
     email_send(os.environ['REPORT_OWNER'], email_list[name], "[trello report] Trello cards that need attention", msg)
 
 #email report
+report_intro_msg = os.environ['REPORT_INTRO_MSG']
 all_msg = ""
+all_msg += report_intro_msg + '\n\n'
 all_msg += 'There are %s cards in progress\n\n' % len(cards_in_progress)
 all_msg += 'cards in complete:\n %s\n\n' % generate_stats("Complete")
 all_msg += 'cards in next:\n %s\n\n' % generate_stats("Next")

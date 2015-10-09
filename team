@@ -16,3 +16,6 @@ Greetings,
 Trello cards older than one week should be broken down into smaller cards that
 can be completed in one week.
 The following cards have been flagged."
+
+#Report intro message included in emails to members of the report list
+export REPORT_INTRO_MSG=""
