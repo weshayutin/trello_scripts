@@ -74,14 +74,17 @@ def generate_report_body():
         msg = 'CARD URL: %s\nNAME: %s\n \
               Card is overdue by %s months %s days.\n \
               Card is %s months %s days old.\n \
-              Owner(s) are %s\n ' \
+              Owner(s) are %s\n  \
+              Last updated on %s\n ' \
               % (card.get_card_information()['shortUrl'],\
                  card.name,\
                  delta.months,\
                  delta.days,\
                  card_age.months,\
                  card_age.days,\
-                 member_list_str)
+                 member_list_str,\
+                 dateutil.parser.parse(card.get_card_information()['dateLastActivity']).strftime('%Y-%m-%d %H:%M:%S')
+                 )
         for member in member_list:
           msg_dict[str(member).strip()].append(msg)
 
