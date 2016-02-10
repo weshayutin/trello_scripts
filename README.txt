@@ -1,6 +1,4 @@
-README
-
-This tool uses https://github.com/plish/Trolly
+README:
 
 Requirements:
 git clone https://github.com/plish/Trolly
