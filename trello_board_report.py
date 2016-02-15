@@ -140,41 +140,41 @@ def generate_report():
 #Generate Report
 generate_report()
 
-# #EMAIL SECTION
-# email_list = ast.literal_eval(os.environ['TEAM_TO_EMAIL'])
-# email_server.starttls()
+#EMAIL SECTION
+email_list = ast.literal_eval(os.environ['TEAM_TO_EMAIL'])
+email_server.starttls()
 
-# #email each owner w/ a list of cards that require attention
+#email each owner w/ a list of cards that require attention
 
-# for name, msg in msg_dict.items():
-#   if name in email_list and msg:
-#     intro_msg = os.environ['TEAM_INTRO_MSG']
-#     msg = intro_msg + '\n\n' + '\n\n'.join(msg)
-#     email_send(os.environ['REPORT_OWNER'], email_list[name], "[trello report] Trello cards that need attention", msg)
+for name, msg in msg_dict.items():
+  if name in email_list and msg:
+    intro_msg = os.environ['TEAM_INTRO_MSG']
+    msg = intro_msg + '\n\n' + '\n\n'.join(msg)
+    email_send(os.environ['REPORT_OWNER'], email_list[name], "[trello report] Trello cards that need attention", msg)
 
-# #email report
-# report_intro_msg = os.environ['REPORT_INTRO_MSG']
-# all_msg = ""
-# all_msg += report_intro_msg + '\n\n'
-# all_msg += 'There are %s cards in progress\n\n' % len(cards_in_progress)
-# all_msg += 'cards in complete:\n %s\n\n' % generate_stats("Complete")
-# all_msg += 'cards in next:\n %s\n\n' % generate_stats("Next")
-# all_msg += 'cards in progress:\n %s\n\n' % generate_stats("In Progress")
+#email report
+report_intro_msg = os.environ['REPORT_INTRO_MSG']
+all_msg = ""
+all_msg += report_intro_msg + '\n\n'
+all_msg += 'There are %s cards in progress\n\n' % len(cards_in_progress)
+all_msg += 'cards in complete:\n %s\n\n' % generate_stats("Complete")
+all_msg += 'cards in next:\n %s\n\n' % generate_stats("Next")
+all_msg += 'cards in progress:\n %s\n\n' % generate_stats("In Progress")
 
-# for name, msg in msg_dict.items():
-#   if msg:
-#     all_msg += '\n'
-#     all_msg += '\n'.join(msg)
+for name, msg in msg_dict.items():
+  if msg:
+    all_msg += '\n'
+    all_msg += '\n'.join(msg)
 
-# email_send(os.environ['REPORT_OWNER'], os.environ['REPORT_LIST'], "[trello rollup report] Trello cards that need attention", all_msg)
+email_send(os.environ['REPORT_OWNER'], os.environ['REPORT_LIST'], "[trello rollup report] Trello cards that need attention", all_msg)
 
-# #email team members w/ nothing in progress
-# nada = nothing_in_progress()
-# for name in nada:
-#   if name in email_list:
-#     all_msg = '%s, you are not a member of any cards marked in progress in trello.  Please pick up a card and begin work' % name
-#     email_send(os.environ['REPORT_OWNER'], team[name], "[trello report] no cards found in progress", all_msg)
+#email team members w/ nothing in progress
+nada = nothing_in_progress()
+for name in nada:
+  if name in email_list:
+    all_msg = '%s, you are not a member of any cards marked in progress in trello.  Please pick up a card and begin work' % name
+    email_send(os.environ['REPORT_OWNER'], team[name], "[trello report] no cards found in progress", all_msg)
 
-# #shutdown the connection to smtp/email
-# email_server.quit()
+#shutdown the connection to smtp/email
+email_server.quit()
 
