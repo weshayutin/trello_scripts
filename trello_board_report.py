@@ -103,14 +103,34 @@ def generate_report_body():
           msg_dict[str(member).strip()].append(msg)
 
 def generate_stats(column):
+  #set counter
+  attempts = 0
+  max_attempts = 16
   stats = {}
   for member in team.keys():
     stats[member] = 0
   column_list = []
-  this_list = get_list(column)
+
+  while attempts < max_attempts:
+    try:
+      this_list = get_list(column)
+      attempts = max_attempts
+    except:
+      attempts += 1
+      print ("Trello resource get_list(column) is Unavailable, retry")
+
   [column_list.append(card) for card in this_list.get_cards()]
+
+  #reset counter
+  attempts = 0
   for card in column_list:
-    members = card.get_members()
+    while attempts < max_attempts:
+      try:
+        members = card.get_members()
+        attempts = max_attempts
+      except:
+        attempts += 1
+        print ("Trello resource get_members is Unavailable, retry")
     for member in members:
       if member.name in team: stats[member.name] += 1
   return stats
