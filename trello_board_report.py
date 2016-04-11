@@ -40,6 +40,10 @@ def email_send(email_from, email_to, subject, body):
 
 def generate_report_body():
     for card in cards_in_progress:
+      #set counter
+      attempts = 0
+      max_attempts = 16
+
       id = card.id
       #Determine the creation date of the card
       hex_date = (int(id[0:8],16))
@@ -48,13 +52,22 @@ def generate_report_body():
       card_age = relativedelta(now, created_on)
       print(card)
       #set a due date (1 week), if none set
-      if card.get_card_information()['due']:
+
+      while attempts < max_attempts:
+        try:
+          card_information =  card.get_card_information()
+          attempts = max_attempts
+        except:
+          attepts += 1
+          print ("connection failed getting card.get_card_information, retry")
+
+      if card_information['due']:
         print("due date already set")
       else:
         in_one_week = now+relativedelta(weeks=+1)
         in_one_week = in_one_week.strftime('%Y-%m-%dT%H:%M:%S')
         card.update_card({'due':in_one_week})
-      due = dateutil.parser.parse(card.get_card_information()['due'])
+      due = dateutil.parser.parse(card_information['due'])
       delta = relativedelta(now, due)
 
       #only generate date on team members
